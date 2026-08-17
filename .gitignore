@@ -1,0 +1,29 @@
+# Secrets and local env — never commit
+.env
+.env.*
+!.env.example
+secrets/**
+!secrets/README.md
+*.pem
+*.key
+
+# Node
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.vite/
+
+# Go
+bin/
+*.exe
+*.test
+*.out
+vendor/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
