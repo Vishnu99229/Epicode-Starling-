@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://starling.epicode/contracts/iravoice-webhook-event.schema.json",
+  "title": "IraVoice Webhook Event",
+  "description": "Canonical payload IraVoice POSTs to the configured event_url for call lifecycle events. Source: ld.epicode.in/documentation (IraVoice API 2.0.0). Ledger's webhook receiver parses this. NOTE: event_data.additionalProperties is true — events carry extra fields (dialer_ip, gateway, network_ip, direction, read/write_sampling_rate); store the raw payload alongside the typed extract.",
+  "type": "object",
+  "properties": {
+    "event_name": {
+      "type": "string",
+      "enum": [
+        "iravoice::started",
+        "iravoice::ringing",
+        "iravoice::answered",
+        "iravoice::botaudio_stream_started",
+        "iravoice::speech",
+        "iravoice::silent",
+        "iravoice::play_paused",
+        "iravoice::play_stopped",
+        "iravoice::play_done",
+        "iravoice::dtmf",
+        "iravoice::hangup",
+        "iravoice::stream_stopped",
+        "iravoice::call_quality"
+      ]
+    },
+    "event_data": {
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time", "description": "ISO 8601 event timestamp." },
+        "call_uuid": { "type": "string", "description": "Correlation key — matches call_ledger.call_uuid and the makecall response." },
+        "call_params": { "type": "object", "description": "Echo of the makecall call_params. Stamp Starling campaign_id/contact_id here for correlation beyond call_uuid." },
+        "tenant_id": { "type": "string" },
+        "call_type": { "type": "string", "enum": ["inbound", "outbound"] },
+        "to_number": { "type": "string" },
+        "from_number": { "type": "string" }
+      },
+      "required": ["timestamp", "call_uuid", "call_params"],
+      "additionalProperties": true
+    }
+  },
+  "required": ["event_name", "event_data"],
+  "additionalProperties": false
+}

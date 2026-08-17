@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://starling.epicode/contracts/call-state-change.schema.json",
+  "title": "Call State Change (internal)",
+  "description": "Starling-internal message emitted by Ledger when an IraVoice webhook event transitions a call_ledger row. Produced by: Ledger webhook receiver. Consumed by: Ledger state writer + WebSocket aggregator. Only started/ringing/answered/hangup drive transitions; other IraVoice events are logged as telemetry.",
+  "type": "object",
+  "properties": {
+    "call_uuid": { "type": "string", "description": "Correlation key from the IraVoice event." },
+    "campaign_id": { "type": ["string", "null"], "description": "Starling campaign UUID, resolved from call_ledger by call_uuid or echoed call_params." },
+    "contact_id": { "type": ["string", "null"], "description": "Starling contact UUID, resolved similarly." },
+    "source_event": {
+      "type": "string",
+      "enum": ["iravoice::started", "iravoice::ringing", "iravoice::answered", "iravoice::hangup", "iravoice::stream_stopped"]
+    },
+    "from_state": {
+      "type": ["string", "null"],
+      "enum": [null, "queued", "dialing", "ringing", "in_progress", "completed", "failed", "retry_wait", "skipped", "dead", "analyzed"]
+    },
+    "to_state": {
+      "type": "string",
+      "enum": ["queued", "dialing", "ringing", "in_progress", "completed", "failed", "retry_wait", "skipped", "dead", "analyzed"]
+    },
+    "event_ts": { "type": "string", "format": "date-time", "description": "From IraVoice event_data.timestamp." },
+    "raw_event": { "type": "object", "description": "Full raw IraVoice webhook payload, stored for audit and additionalProperties." }
+  },
+  "required": ["call_uuid", "source_event", "to_state", "event_ts", "raw_event"],
+  "additionalProperties": false
+}

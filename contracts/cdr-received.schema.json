@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://starling.epicode/contracts/cdr-received.schema.json",
+  "title": "CDR Received (internal)",
+  "description": "Wraps a BotCompose CDR arriving at the same event_url webhook. Produced by: Ledger webhook receiver (when payload shape is a CDR, i.e. has call_info/latency_metrics/usage_metrics). Consumed by: Ledger CDR store + Python enrichment.",
+  "type": "object",
+  "properties": {
+    "call_uuid": { "type": "string" },
+    "campaign_id": { "type": ["string", "null"] },
+    "received_at": { "type": "string", "format": "date-time" },
+    "raw_cdr": { "type": "object", "description": "The full CDR JSON as delivered." }
+  },
+  "required": ["call_uuid", "received_at", "raw_cdr"],
+  "additionalProperties": false
+}

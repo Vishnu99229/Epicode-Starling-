@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://starling.epicode/contracts/dial-job.schema.json",
+  "title": "Dial Job (internal)",
+  "description": "A single origination unit Flock consumes. Produced by: campaign launcher. Consumed by: Flock.",
+  "type": "object",
+  "properties": {
+    "campaign_id": { "type": "string" },
+    "contact_id": { "type": "string" },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "phone_e164": { "type": "string" },
+    "bot_id": { "type": "string" },
+    "iravoice_campaign_name": { "type": "string" },
+    "macro_fields": { "type": "object" },
+    "dedupe_key": { "type": "string", "description": "campaign_id:contact_id:attempt — Redis SETNX guard against double-dials." },
+    "calling_window": { "type": ["object", "null"] }
+  },
+  "required": ["campaign_id", "contact_id", "attempt", "phone_e164", "bot_id", "dedupe_key"],
+  "additionalProperties": false
+}
