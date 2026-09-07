@@ -1,0 +1,82 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@layer base {
+  :root {
+    --ground: #0f1419;
+    --panel: #171d23;
+    --line: #232b33;
+    --text: #e4e9ed;
+    --muted: #8695a0;
+    --live: #3fb68b;
+    --warn: #e0a458;
+    --fail: #d9635f;
+    --idle: #5a6b78;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-ground text-text font-sans antialiased;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  /* Tabular numerals for dense tables and metrics */
+  table,
+  .metric,
+  [data-metric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--live);
+    outline-offset: 2px;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--live);
+    outline-offset: 2px;
+  }
+
+  .skeleton-bar {
+    @apply rounded-sm bg-line/80;
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-bar {
+      animation: none;
+      opacity: 0.7;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

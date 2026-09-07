@@ -27,3 +27,5 @@ vendor/
 .vscode/
 *.swp
 *~
+node_modules/
+.env.local
