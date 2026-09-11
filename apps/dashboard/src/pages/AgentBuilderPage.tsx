@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
 import { agentCreateSchema, type Agent, type AgentCreate } from '@/types'
 
 function toFormValues(agent: Agent): AgentCreate {
-  return agentCreateSchema.parse(agent)
+  return agentCreateSchema.parse({ ...agent, interruptWordCount: 3 })
 }
 
 export function AgentBuilderPage() {
@@ -57,7 +57,6 @@ export function AgentBuilderPage() {
   const sttProvider = useWatch({ control: form.control, name: 'stt.provider' })
   const ttsProvider = useWatch({ control: form.control, name: 'tts.provider' })
   const voiceEngine = useWatch({ control: form.control, name: 'voiceEngine' }) ?? 'cascaded'
-  const indiaRouting = useWatch({ control: form.control, name: 'indiaRouting' })
 
   useEffect(() => {
     const models = modelsForLlm(llmProvider)
@@ -98,6 +97,7 @@ export function AgentBuilderPage() {
   const onSubmit = form.handleSubmit(async (data) => {
     const payload: AgentCreate = {
       ...data,
+      interruptWordCount: 3,
       language: data.stt.language,
       tts: { ...data.tts, language: data.stt.language },
       llm: {
@@ -146,12 +146,6 @@ export function AgentBuilderPage() {
                   <span>Platform ₹{cost.platform.toFixed(1)}</span>
                 </div>
               </div>
-              <label className="flex cursor-pointer items-center gap-2 border border-line px-2 py-1 text-xs">
-                <input type="checkbox" {...form.register('indiaRouting')} />
-                <span className={indiaRouting ? 'text-text' : 'text-muted'}>
-                  India routing
-                </span>
-              </label>
               <Button
                 type="button"
                 size="icon"

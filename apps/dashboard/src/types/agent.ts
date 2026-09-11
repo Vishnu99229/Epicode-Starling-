@@ -56,7 +56,6 @@ export const ttsProviderSchema = z.enum([
   'cartesia',
 ])
 export const telephonyProviderSchema = z.enum(['epicode'])
-export const responseRateSchema = z.enum(['rapid', 'balanced', 'patient'])
 export const extractionTypeSchema = z.enum(['text', 'number', 'boolean', 'enum'])
 export const webhookStatusSchema = z.enum([
   'completed',
@@ -66,9 +65,9 @@ export const webhookStatusSchema = z.enum([
   'voicemail',
 ])
 export const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+/** Maps to BotCompose `builtin_tools` (transfer_call) or `webhook_tools` (calendar, custom). */
 export const functionToolKindSchema = z.enum([
   'calendar_availability',
-  'book_appointment',
   'transfer_call',
   'custom',
 ])
@@ -103,7 +102,6 @@ export const agentSchema = z.object({
   status: agentStatusSchema,
   language: z.string().min(2),
   voiceEngine: voiceEngineSchema,
-  indiaRouting: z.boolean(),
 
   welcomeMessage: z.string(),
   ignoreSpeechBeforeWelcome: z.boolean(),
@@ -147,20 +145,8 @@ export const agentSchema = z.object({
   outboundTimingEnd: z.string(),
   outboundDaysOfWeek: z.array(num.int().min(0).max(6)),
 
-  responseRate: responseRateSchema,
-  interruptWordCount: num.min(0).max(10),
-  userOnlineDetectionEnabled: z.boolean(),
-  userOnlineMessages: z.object({
-    hi: z.string(),
-    en: z.string(),
-  }),
-  userOnlineInvokeAfterSec: num.min(0),
-  finalCallMessages: z.object({
-    hi: z.string(),
-    en: z.string(),
-  }),
-  hangupOnSilenceEnabled: z.boolean(),
-  hangupOnSilenceSec: num.min(0),
+  /** Barge-in threshold — fixed at 3 words for now (BotCompose STT pipeline). */
+  interruptWordCount: z.literal(3),
   botInactivityEnabled: z.boolean(),
   botInactivityLimitSec: num.min(0),
   totalCallTimeoutSec: num.int().positive(),

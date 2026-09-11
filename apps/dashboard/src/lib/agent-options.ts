@@ -79,17 +79,13 @@ export const BUILTIN_TOOLS = [
   {
     kind: 'calendar_availability' as const,
     name: 'Calendar availability',
-    description: 'Check open slots on a connected calendar.',
-  },
-  {
-    kind: 'book_appointment' as const,
-    name: 'Book appointment',
-    description: 'Create a booking for a confirmed slot.',
+    description:
+      'Webhook tool — BotCompose calls your URL when the LLM invokes this function.',
   },
   {
     kind: 'transfer_call' as const,
     name: 'Transfer call',
-    description: 'Hand off to a human agent or queue.',
+    description: 'Builtin tool — maps to BotCompose builtin_tools transfer_call.',
   },
 ]
 
@@ -148,7 +144,6 @@ export const defaultAgentFormValues: AgentCreate = {
   status: 'draft',
   language: 'en-IN',
   voiceEngine: 'cascaded',
-  indiaRouting: true,
   welcomeMessage: '',
   ignoreSpeechBeforeWelcome: false,
   welcomeDelayMs: 0,
@@ -187,20 +182,7 @@ export const defaultAgentFormValues: AgentCreate = {
   outboundTimingStart: '09:30',
   outboundTimingEnd: '18:30',
   outboundDaysOfWeek: [1, 2, 3, 4, 5, 6],
-  responseRate: 'balanced',
-  interruptWordCount: 2,
-  userOnlineDetectionEnabled: false,
-  userOnlineMessages: {
-    hi: 'क्या आप अभी भी लाइन पर हैं?',
-    en: 'Are you still there?',
-  },
-  userOnlineInvokeAfterSec: 8,
-  finalCallMessages: {
-    hi: 'धन्यवाद, कॉल यहीं समाप्त होती है।',
-    en: 'Thank you. This call will now end.',
-  },
-  hangupOnSilenceEnabled: true,
-  hangupOnSilenceSec: 12,
+  interruptWordCount: 3,
   botInactivityEnabled: false,
   botInactivityLimitSec: 10,
   totalCallTimeoutSec: 300,

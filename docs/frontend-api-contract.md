@@ -49,7 +49,7 @@ Not called by the UI yet; useful for backend liveness.
 | POST | `/agents` | `AgentCreate` | `Agent` (201) |
 | PATCH | `/agents/:id` | `AgentUpdate` (partial) | `Agent` |
 
-**`Agent`** (see `src/types/agent.ts`): `id`, `name`, `description`, `status` (`draft` \| `active` \| `archived`), `language`, `voiceEngine`, `indiaRouting`, welcome/prompt fields, nested `llm`, `stt`, `tts`, `telephonyProvider` (`epicode`), pacing/engine/tools/extraction fields, `createdAt`, `updatedAt`.
+**`Agent`** (see `src/types/agent.ts`): `id`, `name`, `description`, `status` (`draft` \| `active` \| `archived`), `language`, `voiceEngine`, welcome/prompt fields, nested `llm`, `stt`, `tts`, `telephonyProvider` (`epicode`), `interruptWordCount` (fixed `3`), engine/calling/tools/extraction fields, `createdAt`, `updatedAt`. Builtin tools align with BotCompose `builtin_tools` / `webhook_tools`.
 
 **`AgentCreate`**: same without `id`, `createdAt`, `updatedAt`.
 
