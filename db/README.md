@@ -11,7 +11,7 @@ docker compose up -d   # Postgres must be healthy
 Connection (matches `.env.example`):
 
 ```
-postgres://starling:starling@localhost:5432/starling?sslmode=disable
+postgres://starling:starling@127.0.0.1:5433/starling?sslmode=disable
 ```
 
 ## Apply
@@ -33,7 +33,8 @@ The script:
 
 | File | Purpose |
 |------|---------|
-| `migrations/000001_init.up.sql` | Initial schema: tenants, users, campaigns, contacts, bot_versions, call_ledger, cdrs |
+| `migrations/000001_init.up.sql` | Phase 0 scaffold: tenants, users, campaigns, contacts, bot_versions, call_ledger, cdrs |
+| `migrations/000002_ui_aligned_schema.up.sql` | UI-aligned schema: agents, contact_lists, dial_jobs; replaces ledger/CDR shape |
 
 ## Inspect
 
