@@ -1,7 +1,8 @@
-import { config, iraVoiceConfigured } from '../config.js'
+import { config } from '../config.js'
+import { isConfigured } from '../lib/iravoice-config.js'
 
 export async function dropCall(callUuid: string): Promise<void> {
-  if (!iraVoiceConfigured()) {
+  if (!isConfigured()) {
     throw new Error('IraVoice is not configured')
   }
 

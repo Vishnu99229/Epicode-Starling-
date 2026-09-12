@@ -23,6 +23,10 @@ export function notImplemented(message: string) {
   return new HttpError(501, message)
 }
 
+export function serviceUnavailable(message: string) {
+  return new HttpError(503, message)
+}
+
 export function registerErrorHandler(app: {
   setErrorHandler: (
     handler: (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => void,

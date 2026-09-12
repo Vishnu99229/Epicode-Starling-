@@ -23,8 +23,8 @@ func BuildMakecall(job store.ClaimedJob, cfg config.Config, agentSettings agent.
 	if strings.TrimSpace(job.IraVoiceCampaignName) == "" {
 		return MakecallRequest{}, fmt.Errorf("campaign %s missing iravoice_campaign_name", job.CampaignID)
 	}
-	if strings.TrimSpace(cfg.EventURL) == "" {
-		return MakecallRequest{}, fmt.Errorf("EVENT_URL is required")
+	if strings.TrimSpace(cfg.EventURLBase) == "" {
+		return MakecallRequest{}, fmt.Errorf("EVENT_URL_BASE is required")
 	}
 
 	wssURL := fmt.Sprintf(
@@ -49,7 +49,7 @@ func BuildMakecall(job store.ClaimedJob, cfg config.Config, agentSettings agent.
 
 	callParams := map[string]interface{}{
 		"bot_id":                 agentSettings.BotID,
-		"event_url":              strings.TrimRight(cfg.EventURL, "/") + "/webhooks/iravoice",
+		"event_url":              strings.TrimRight(cfg.EventURLBase, "/") + "/webhooks/iravoice",
 		"campaign_id":            job.CampaignID,
 		"contact_id":             job.ContactID,
 		"dial_job_id":            job.ID,

@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify'
+import type { FastifyBaseLogger, FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import { botComposeConfigured } from '../config.js'
@@ -11,21 +11,57 @@ import {
   mergeAgentUpdate,
 } from '../mappers/agents.js'
 import { toAddBotPayload } from '../mappers/agent-to-botcompose.js'
-import { agentCreateSchema, agentUpdateSchema } from '../schemas/agents.js'
+import {
+  agentCreateSchema,
+  agentUpdateSchema,
+  type Agent,
+} from '../schemas/agents.js'
 import { addBot } from '../services/botcompose.js'
 
 const idParamsSchema = z.object({
   id: z.string().uuid(),
 })
 
-async function fetchAgentRow(id: string) {
+type AgentRow = {
+  id: string
+  name: string
+  description: string
+  status: Agent['status']
+  config: Record<string, unknown>
+  botcompose_bot_id: string | null
+  created_at: Date
+  updated_at: Date
+}
+
+async function fetchAgentRow(id: string): Promise<AgentRow | null> {
   const result = await pool.query(
     `SELECT id, name, description, status, config, botcompose_bot_id, created_at, updated_at
      FROM agents
      WHERE id = $1`,
     [id],
   )
-  return result.rows[0] ?? null
+  return (result.rows[0] as AgentRow | undefined) ?? null
+}
+
+async function activateAgentOnBotCompose(
+  id: string,
+  row: AgentRow,
+  log: FastifyBaseLogger,
+): Promise<string> {
+  if (!botComposeConfigured()) {
+    throw notImplemented(
+      'BotCompose is not configured. Set BOTCOMPOSE_BASE_URL, BOTCOMPOSE_BEARER_TOKEN, and EPICODE_TENANT.',
+    )
+  }
+
+  const agent = mapAgent(row)
+  const { payload, unmapped } = toAddBotPayload(agent, row.botcompose_bot_id)
+
+  log.info({ agentId: id, unmapped }, 'Agent → BotCompose unmapped fields')
+
+  await addBot(payload)
+
+  return botIdForAgent(agent.id, row.botcompose_bot_id)
 }
 
 export async function registerAgentRoutes(app: FastifyInstance) {
@@ -47,7 +83,6 @@ export async function registerAgentRoutes(app: FastifyInstance) {
 
   app.post('/agents', async (request, reply) => {
     const body = agentCreateSchema.parse(request.body)
-    const now = new Date()
     const configJson = agentConfigFromCreate(body)
 
     const result = await pool.query(
@@ -71,12 +106,23 @@ export async function registerAgentRoutes(app: FastifyInstance) {
     const merged = mergeAgentUpdate(existing, patch)
     agentCreateSchema.parse(merged)
 
+    const activating =
+      existingRow.status !== 'active' &&
+      merged.status === 'active' &&
+      !existingRow.botcompose_bot_id
+
+    let botcomposeBotId = existingRow.botcompose_bot_id
+    if (activating) {
+      botcomposeBotId = await activateAgentOnBotCompose(id, existingRow, request.log)
+    }
+
     const result = await pool.query(
       `UPDATE agents
        SET name = $2,
            description = $3,
            status = $4,
            config = $5::jsonb,
+           botcompose_bot_id = COALESCE($6, botcompose_bot_id),
            updated_at = now()
        WHERE id = $1
        RETURNING id, name, description, status, config, botcompose_bot_id, created_at, updated_at`,
@@ -86,6 +132,7 @@ export async function registerAgentRoutes(app: FastifyInstance) {
         merged.description,
         merged.status,
         JSON.stringify(agentConfigFromCreate(merged)),
+        botcomposeBotId,
       ],
     )
 
@@ -95,23 +142,10 @@ export async function registerAgentRoutes(app: FastifyInstance) {
   app.post('/agents/:id/activate', async (request, reply) => {
     const { id } = idParamsSchema.parse(request.params)
 
-    if (!botComposeConfigured()) {
-      throw notImplemented(
-        'BotCompose is not configured. Set BOTCOMPOSE_BASE_URL, BOTCOMPOSE_BEARER_TOKEN, and EPICODE_TENANT.',
-      )
-    }
-
     const row = await fetchAgentRow(id)
     if (!row) throw notFound('Agent not found')
 
-    const agent = mapAgent(row)
-    const { payload, unmapped } = toAddBotPayload(agent, row.botcompose_bot_id)
-
-    request.log.info({ agentId: id, unmapped }, 'Agent → BotCompose unmapped fields')
-
-    await addBot(payload)
-
-    const botId = botIdForAgent(agent.id, row.botcompose_bot_id)
+    const botId = await activateAgentOnBotCompose(id, row, request.log)
 
     const result = await pool.query(
       `UPDATE agents

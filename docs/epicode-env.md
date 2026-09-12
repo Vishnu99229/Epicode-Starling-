@@ -33,6 +33,7 @@ Switch profiles via `.env.example` blocks (`CLOUD_VM` vs `REMOTE_SANDBOX`).
 ## Event model (webhook-only — no NATS)
 
 - IraVoice sends **all** call lifecycle events (`started`, `ringing`, `answered`, `hangup`, plus telemetry) **and** the final **CDR** as HTTP POSTs to **one** `event_url` webhook that Starling hosts (Ledger in Phase 1).
+- Flock stamps `call_params.event_url` as `${EVENT_URL_BASE}/webhooks/iravoice`. `EVENT_URL_BASE` must be the **tailnet-reachable** base URL of the host running Ledger (default `http://100.91.56.26:8080` — the Mac on the `epicode.in` tailnet). IraVoice (e.g. `100.126.210.31`) must be able to POST to that address; do not use `127.0.0.1`.
 - Events are **always emitted** when `event_url` is configured in makecall `call_params`.
 - Starling does **not** use external NATS — no NATS client or consumer anywhere in this repo.
 - Ledger dispatches by payload shape: IraVoice envelope (`event_name` + `event_data`) vs BotCompose CDR (`call_info` / `latency_metrics` / `usage_metrics`). See [`contracts/README.md`](../contracts/README.md).
@@ -160,7 +161,7 @@ Paste answers here as they arrive from Epicode. Do not put secret values in this
 | Item | Status | Answer / location |
 |------|--------|-------------------|
 | `TEST_TO_NUMBER` (SIP extension) | ☐ pending | `.env` |
-| `EVENT_URL` reachable from IraVoice (tunnel or same-network) | ☐ pending | `.env` |
+| `EVENT_URL_BASE` reachable from IraVoice over tailnet | ☐ pending | `.env` — default `http://100.91.56.26:8080` |
 | Provider secrets on tenant `vishnu` (deepgram/groq/sarvam) | ☐ pending | `.env` or pre-provisioned on sandbox |
 | End-to-end smoke: add_bot → makecall → events → CDR | ☐ pending | `SMOKE_LIVE=true` |
 
@@ -174,7 +175,8 @@ Paste answers here as they arrive from Epicode. Do not put secret values in this
 | `IRAVOICE_MAKECALL_URL` | makecall endpoint |
 | `EPICODE_TENANT` | `vishnu` or `copter` |
 | `EPICODE_SITE` / `EPICODE_CAMPAIGN` | Site or sandbox campaign name |
-| `EVENT_URL` | Public URL IraVoice POSTs events + CDR to |
+| `EVENT_URL_BASE` | Tailnet base URL of Ledger (`http://host:8080`); Flock appends `/webhooks/iravoice` |
+| `EVENT_URL` | Deprecated alias for `EVENT_URL_BASE` (still read by Flock if unset) |
 | `WEBHOOK_PORT` | Local ledger/smoke receiver port |
 | `TEST_TO_NUMBER` | Dial target for live smoke |
 | `SMOKE_LIVE` | Gate live makecall (default `false`) |

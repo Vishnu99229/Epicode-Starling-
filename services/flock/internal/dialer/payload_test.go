@@ -12,7 +12,7 @@ import (
 
 func TestBuildMakecallSample(t *testing.T) {
 	cfg := config.Config{
-		EventURL:          "https://ledger.example",
+		EventURLBase:      "https://ledger.example",
 		BotWebSocketHost:  "bot.example.com",
 		BotWebSocketPort:  "443",
 		BotWebSocketApp:   "voice",

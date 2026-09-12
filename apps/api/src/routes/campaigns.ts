@@ -2,12 +2,12 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import { pool, withTransaction } from '../db.js'
-import { badRequest, notFound } from '../errors.js'
+import { badRequest, notFound, serviceUnavailable } from '../errors.js'
+import { isConfigured as isIraVoiceConfigured } from '../lib/iravoice-config.js'
 import { computeCampaignProgress } from '../lib/progress.js'
 import { resolveTenantId } from '../lib/tenant.js'
 import { campaignInsertPayload, mapCampaign, type CampaignRow } from '../mappers/campaigns.js'
 import { campaignCreateSchema } from '../schemas/campaigns.js'
-import { iraVoiceConfigured } from '../config.js'
 import { dropCalls } from '../services/iravoice.js'
 
 const idParamsSchema = z.object({
@@ -107,6 +107,10 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
   app.post('/campaigns/:id/start', async (request) => {
     const { id } = idParamsSchema.parse(request.params)
 
+    if (!isIraVoiceConfigured()) {
+      throw serviceUnavailable('IraVoice env not configured — cannot start campaigns')
+    }
+
     return withTransaction(async (client) => {
       const campaignResult = await client.query(`${campaignSelect} WHERE id = $1::uuid`, [id])
       const row = campaignResult.rows[0] as CampaignRow | undefined
@@ -192,6 +196,7 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
 
   app.post('/campaigns/:id/stop', async (request) => {
     const { id } = idParamsSchema.parse(request.params)
+    const iraVoiceReady = isIraVoiceConfigured()
 
     const inFlight = await pool.query(
       `SELECT call_uuid
@@ -204,7 +209,7 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
       .map((row) => row.call_uuid as string)
       .filter(Boolean)
 
-    if (callUuids.length > 0 && iraVoiceConfigured()) {
+    if (callUuids.length > 0 && iraVoiceReady) {
       await dropCalls(callUuids)
     }
 
@@ -229,6 +234,15 @@ export async function registerCampaignRoutes(app: FastifyInstance) {
     if (!result.rows[0]) throw notFound('Campaign not found')
     const row = result.rows[0] as CampaignRow
     const progress = await computeCampaignProgress(pool, id, row.contact_list_id)
-    return mapCampaign(row, progress)
+    const campaign = mapCampaign(row, progress)
+
+    if (!iraVoiceReady) {
+      return {
+        ...campaign,
+        warning: 'IraVoice env not configured — in-flight calls were NOT dropped',
+      }
+    }
+
+    return campaign
   })
 }

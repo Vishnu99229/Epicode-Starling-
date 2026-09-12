@@ -11,7 +11,7 @@ type Config struct {
 	IraVoiceBaseURL    string
 	IraVoiceToken      string
 	EpicodeTenant      string
-	EventURL           string
+	EventURLBase       string
 	BotWebSocketHost   string
 	BotWebSocketPort   string
 	BotWebSocketApp    string
@@ -37,7 +37,11 @@ func Load() Config {
 		), "/"),
 		IraVoiceToken:     strings.TrimSpace(os.Getenv("IRAVOICE_BEARER_TOKEN")),
 		EpicodeTenant:     env("EPICODE_TENANT", "copter"),
-		EventURL:          strings.TrimSpace(os.Getenv("EVENT_URL")),
+		EventURLBase: strings.TrimRight(firstNonEmpty(
+			os.Getenv("EVENT_URL_BASE"),
+			os.Getenv("EVENT_URL"),
+			"http://100.91.56.26:8080",
+		), "/"),
 		BotWebSocketHost:  env("BOT_WEBSOCKET_HOST", "localhost"),
 		BotWebSocketPort:  env("BOT_WEBSOCKET_PORT", "443"),
 		BotWebSocketApp:   env("BOT_WEBSOCKET_APP", "bot"),
